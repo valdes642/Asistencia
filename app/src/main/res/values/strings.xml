@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Asistencia</string>
+    <string name="welcome_message">Bienvenido al registro de asistencia</string>
+    <string name="login_subtitle">Ingresa tus credenciales para continuar</string>
+    <string name="hint_username">Usuario o Correo</string>
+    <string name="hint_password">Contraseña</string>
+    <string name="login_button">Iniciar Sesión</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+</resources>
