@@ -1,5 +1,6 @@
 package com.example.asistencia;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -65,8 +66,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(LoginResponse response) {
                 setLoading(false);
-                Toast.makeText(MainActivity.this, response.getMessage() + " (Token: " + response.getToken() + ")", Toast.LENGTH_LONG).show();
-                // TODO: Navegar a la pantalla principal del registro de asistencia
+                Toast.makeText(MainActivity.this, response.getMessage(), Toast.LENGTH_SHORT).show();
+
+                // Navegar al Dashboard de Registro de Asistencia
+                Intent intent = new Intent(MainActivity.this, DashboardActivity.class);
+                intent.putExtra("USERNAME", username);
+                startActivity(intent);
+                finish();
             }
 
             @Override
