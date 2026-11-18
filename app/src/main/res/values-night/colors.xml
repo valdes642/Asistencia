@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="hero_start">#072229</color>
+    <color name="hero_end">#0A4A4A</color>
+
+    <color name="background">#0D1B20</color>
+    <color name="surface">#15262C</color>
+    <color name="outline">#2E474F</color>
+    <color name="text_primary">#E8F2F3</color>
+    <color name="text_secondary">#A8BEC4</color>
+
+    <color name="primary">#5EDCC4</color>
+    <color name="on_primary">#00382F</color>
+    <color name="primary_container">#174A45</color>
+    <color name="on_primary_container">#C9F3EB</color>
+
+    <color name="success_bg">#123D31</color>
+    <color name="success_fg">#7FE3BD</color>
+    <color name="warning_bg">#43320D</color>
+    <color name="warning_fg">#F6CF7C</color>
+    <color name="danger_bg">#4A1F1E</color>
+    <color name="danger_fg">#FFB4AB</color>
+
+    <bool name="light_system_bars">false</bool>
+</resources>
