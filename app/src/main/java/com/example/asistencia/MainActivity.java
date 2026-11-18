@@ -61,16 +61,19 @@ public class MainActivity extends AppCompatActivity {
         // Mostrar estado de carga (loading) y deshabilitar controles
         setLoading(true);
 
-        // Llamada al repositorio (preparado para API / Retrofit)
+        // Llamada al repositorio (AP-03: Autenticación de usuario con validación y retorno de rol)
         authRepository.login(username, password, new AuthRepository.LoginCallback() {
             @Override
             public void onSuccess(LoginResponse response) {
                 setLoading(false);
                 Toast.makeText(MainActivity.this, response.getMessage(), Toast.LENGTH_SHORT).show();
 
-                // Navegar al Dashboard de Registro de Asistencia
+                // Navegar al Dashboard pasando los datos del usuario y su rol
                 Intent intent = new Intent(MainActivity.this, DashboardActivity.class);
                 intent.putExtra("USERNAME", username);
+                intent.putExtra("ROLE", response.getRole());
+                intent.putExtra("RUT", response.getRut());
+                intent.putExtra("NAME", response.getName());
                 startActivity(intent);
                 finish();
             }

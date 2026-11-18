@@ -13,29 +13,37 @@ public class AuthRepository {
         void onError(String errorMessage);
     }
 
-    // Aquí se inyectará o instanciará Retrofit en el futuro (ej. RetrofitClient.getApiService())
-    // private final AuthApiService apiService;
-
-    public AuthRepository() {
-        // this.apiService = RetrofitClient.getClient().create(AuthApiService.class);
-    }
-
     public void login(String username, String password, LoginCallback callback) {
         LoginRequest request = new LoginRequest(username, password);
 
-        // TODO: Reemplazar con llamada real a la API usando Retrofit (ej. apiService.login(request).enqueue(...))
-        // Simulación de petición de red asíncrona:
+        // Simulación de autenticación (API AP-03: Validación de credenciales y retorno de rol)
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
-            if (request.getUsername().equals("victor") && request.getPassword().equals("060402")) {
-                LoginResponse response = new LoginResponse("mock_token_victor_060402", "Inicio de sesión exitoso", true);
+            if (request.getUsername().equalsIgnoreCase("admin") && request.getPassword().equals("060402")) {
+                LoginResponse response = new LoginResponse(
+                        "mock_token_admin_123",
+                        "Autenticación exitosa (Administrador)",
+                        true,
+                        "admin",
+                        "12.345.678-9",
+                        "Administrador General"
+                );
+                callback.onSuccess(response);
+            } else if (request.getUsername().equalsIgnoreCase("victor") && request.getPassword().equals("060402")) {
+                LoginResponse response = new LoginResponse(
+                        "mock_token_worker_456",
+                        "Autenticación exitosa (Trabajador)",
+                        true,
+                        "worker",
+                        "18.987.654-3",
+                        "Victor Vergara"
+                );
                 callback.onSuccess(response);
             } else if (request.getUsername().isEmpty() || request.getPassword().isEmpty()) {
                 callback.onError("Por favor complete todos los campos");
             } else {
-                // Simulación de respuesta de error de API (ej. credenciales inválidas)
                 callback.onError("Usuario o contraseña incorrectos");
             }
-        }, 1200); // Retardo simulado de red (1.2 segundos)
+        }, 1000);
     }
 }

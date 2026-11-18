@@ -2,6 +2,7 @@ package com.example.asistencia;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -12,6 +13,7 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -36,31 +38,32 @@ public class DashboardActivity extends AppCompatActivity {
         });
 
         String username = getIntent().getStringExtra("USERNAME");
-        if (username == null || username.isEmpty()) {
-            username = "Colaborador";
-        }
+        String role = getIntent().getStringExtra("ROLE");
+        String rut = getIntent().getStringExtra("RUT");
+        String name = getIntent().getStringExtra("NAME");
+
+        if (name == null || name.isEmpty()) name = username != null ? username : "Colaborador";
+        if (rut == null || rut.isEmpty()) rut = "18.987.654-3";
+        if (role == null) role = "worker";
 
         TextView tvUserGreeting = findViewById(R.id.tvUserGreeting);
-        TextView tvCurrentDate = findViewById(R.id.tvCurrentDate);
-        TextView tvCurrentTime = findViewById(R.id.tvCurrentTime);
+        TextView tvUserRut = findViewById(R.id.tvUserRut);
         tvClockStatus = findViewById(R.id.tvClockStatus);
         btnClockAction = findViewById(R.id.btnClockAction);
         MaterialButton btnOpenAdmin = findViewById(R.id.btnOpenAdmin);
+        TextInputEditText etQueryDate = findViewById(R.id.etQueryDate);
+        MaterialButton btnQueryAttendance = findViewById(R.id.btnQueryAttendance);
+        TextView tvQueryResult = findViewById(R.id.tvQueryResult);
 
-        tvUserGreeting.setText("Hola, " + username);
+        tvUserGreeting.setText("Hola, " + name);
+        tvUserRut.setText("RUT: " + rut);
 
-        // Current Date
-        String currentDate = new SimpleDateFormat("EEEE, dd 'de' MMMM 'de' yyyy", new Locale("es", "ES")).format(new Date());
-        tvCurrentDate.setText(currentDate);
-
-        // Current Time
-        String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
-        tvCurrentTime.setText(currentTime);
+        String currentTimeStr = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
 
         btnClockAction.setOnClickListener(v -> {
             if (!isCheckedIn) {
                 isCheckedIn = true;
-                tvClockStatus.setText("Estado: Entrada registrada a las " + currentTime);
+                tvClockStatus.setText("Estado: Entrada registrada a las " + currentTimeStr);
                 btnClockAction.setText("Marcar Salida");
                 Toast.makeText(this, "¡Entrada registrada exitosamente!", Toast.LENGTH_SHORT).show();
             } else {
@@ -71,6 +74,24 @@ public class DashboardActivity extends AppCompatActivity {
                 Toast.makeText(this, "¡Salida registrada exitosamente!", Toast.LENGTH_SHORT).show();
             }
         });
+
+        // GU-05: Consultar asistencia por fecha para Trabajador
+        btnQueryAttendance.setOnClickListener(v -> {
+            String queryDate = etQueryDate.getText() != null ? etQueryDate.getText().toString().trim() : "";
+            if (queryDate.isEmpty()) {
+                Toast.makeText(this, "Ingrese una fecha para consultar", Toast.LENGTH_SHORT).show();
+            } else {
+                // Simulación de consulta por fecha (preparado para API AP-02)
+                tvQueryResult.setText("Resultado (" + queryDate + "): Entrada: 08:00 | Salida: 17:30 (A tiempo)");
+            }
+        });
+
+        // Mostrar botón de Admin si el rol es admin
+        if ("admin".equalsIgnoreCase(role)) {
+            btnOpenAdmin.setVisibility(View.VISIBLE);
+        } else {
+            btnOpenAdmin.setVisibility(View.GONE);
+        }
 
         btnOpenAdmin.setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, AdminReportsActivity.class);
