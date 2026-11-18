@@ -26,7 +26,7 @@
     </style>
 
     <!-- El login es oscuro de borde a borde -->
-    <style name="Theme.Asistencia.Login">
+    <style name="Theme.Asistencia.Login" parent="Theme.Asistencia">
         <item name="android:windowBackground">@drawable/bg_login</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
     </style>
