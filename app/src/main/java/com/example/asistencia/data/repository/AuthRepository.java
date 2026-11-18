@@ -13,13 +13,20 @@ public class AuthRepository {
         void onError(String errorMessage);
     }
 
+    // Aquí se inyectará o instanciará Retrofit en el futuro (ej. RetrofitClient.getApiService())
+    // private final AuthApiService apiService;
+
+    public AuthRepository() {
+        // this.apiService = RetrofitClient.getClient().create(AuthApiService.class);
+    }
+
     public void login(String username, String password, LoginCallback callback) {
         LoginRequest request = new LoginRequest(username, password);
 
         // Simulación de autenticación (API AP-03: Validación de credenciales y retorno de rol)
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
-            if (request.getUsername().equalsIgnoreCase("admin") && request.getPassword().equals("060402")) {
+            if (request.getUsername().equalsIgnoreCase("admin") && request.getPassword().equals("1234")) {
                 LoginResponse response = new LoginResponse(
                         "mock_token_admin_123",
                         "Autenticación exitosa (Administrador)",
