@@ -27,8 +27,8 @@ public class AuthRepository {
         // Simulación de petición de red asíncrona:
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
-            if (request.getUsername().equals("admin") && request.getPassword().equals("123456")) {
-                LoginResponse response = new LoginResponse("mock_token_abc123", "Inicio de sesión exitoso", true);
+            if (request.getUsername().equals("victor") && request.getPassword().equals("060402")) {
+                LoginResponse response = new LoginResponse("mock_token_victor_060402", "Inicio de sesión exitoso", true);
                 callback.onSuccess(response);
             } else if (request.getUsername().isEmpty() || request.getPassword().isEmpty()) {
                 callback.onError("Por favor complete todos los campos");
