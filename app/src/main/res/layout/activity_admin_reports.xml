@@ -311,6 +311,15 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Cerrar Sesión -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLogout"
+                style="@style/Asistencia.Button.Outlined"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="24dp"
+                android:text="Cerrar Sesión"
+                app:strokeColor="@color/danger_fg" />
+
         </LinearLayout>
     </ScrollView>
 

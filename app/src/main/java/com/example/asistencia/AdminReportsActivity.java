@@ -1,5 +1,6 @@
 package com.example.asistencia;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,6 +38,7 @@ public class AdminReportsActivity extends AppCompatActivity {
         TextInputEditText etAdminRut = findViewById(R.id.etAdminRut);
         TextInputEditText etAdminDate = findViewById(R.id.etAdminDate);
         MaterialButton btnAdminQuery = findViewById(R.id.btnAdminQuery);
+        MaterialButton btnLogout = findViewById(R.id.btnLogout);
         TextView tvAdminQueryResult = findViewById(R.id.tvAdminQueryResult);
 
         // Cargar lista de trabajadores activos (Simulación API Admin)
@@ -80,6 +82,14 @@ public class AdminReportsActivity extends AppCompatActivity {
                     }
                 });
             }
+        });
+
+        // Botón Cerrar Sesión
+        btnLogout.setOnClickListener(v -> {
+            Intent intent = new Intent(AdminReportsActivity.this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
         });
     }
 }

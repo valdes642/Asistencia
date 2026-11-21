@@ -55,6 +55,7 @@ public class DashboardActivity extends AppCompatActivity {
         tvClockStatus = findViewById(R.id.tvClockStatus);
         btnClockAction = findViewById(R.id.btnClockAction);
         MaterialButton btnOpenAdmin = findViewById(R.id.btnOpenAdmin);
+        MaterialButton btnLogout = findViewById(R.id.btnLogout);
         TextInputEditText etQueryDate = findViewById(R.id.etQueryDate);
         MaterialButton btnQueryAttendance = findViewById(R.id.btnQueryAttendance);
         TextView tvQueryResult = findViewById(R.id.tvQueryResult);
@@ -117,6 +118,14 @@ public class DashboardActivity extends AppCompatActivity {
         btnOpenAdmin.setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, AdminReportsActivity.class);
             startActivity(intent);
+        });
+
+        // Botón Cerrar Sesión
+        btnLogout.setOnClickListener(v -> {
+            Intent intent = new Intent(DashboardActivity.this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
         });
     }
 }
