@@ -12,6 +12,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.asistencia.data.repository.AttendanceRepository;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -24,6 +25,7 @@ public class DashboardActivity extends AppCompatActivity {
     private boolean isCheckedIn = false;
     private TextView tvClockStatus;
     private MaterialButton btnClockAction;
+    private AttendanceRepository attendanceRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,10 +34,12 @@ public class DashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_dashboard);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        attendanceRepository = new AttendanceRepository();
 
         String username = getIntent().getStringExtra("USERNAME");
         String role = getIntent().getStringExtra("ROLE");
@@ -75,14 +79,31 @@ public class DashboardActivity extends AppCompatActivity {
             }
         });
 
-        // GU-05: Consultar asistencia por fecha para Trabajador
+        // GU-05 / API 2: Consultar asistencia enviando RUT + Fecha
+        final String workerRut = rut;
         btnQueryAttendance.setOnClickListener(v -> {
             String queryDate = etQueryDate.getText() != null ? etQueryDate.getText().toString().trim() : "";
             if (queryDate.isEmpty()) {
                 Toast.makeText(this, "Ingrese una fecha para consultar", Toast.LENGTH_SHORT).show();
             } else {
-                // Simulación de consulta por fecha (preparado para API AP-02)
-                tvQueryResult.setText("Resultado (" + queryDate + "): Entrada: 08:00 | Salida: 17:30 (A tiempo)");
+                tvQueryResult.setText("Consultando a la API 2 (RUT: " + workerRut + ", Fecha: " + queryDate + ")...");
+                attendanceRepository.getAttendance(workerRut, queryDate, new AttendanceRepository.AttendanceCallback() {
+                    @Override
+                    public void onSuccess(AttendanceRepository.AttendanceResult result) {
+                        // OK: muestra datos en pantalla
+                        String resText = "OK: " + result.getMessage() + "\n" +
+                                "Entrada: " + result.getCheckIn() + " | Salida: " + result.getCheckOut() + "\n" +
+                                "Estado: " + result.getStatus();
+                        tvQueryResult.setText(resText);
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        // NOK: muestra mensaje de error con opción de reintento
+                        tvQueryResult.setText("Error [NOK]: " + errorMessage + "\n(Toque 'Buscar Registro' para reintentar)");
+                        Toast.makeText(DashboardActivity.this, "Error en consulta API 2", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 
