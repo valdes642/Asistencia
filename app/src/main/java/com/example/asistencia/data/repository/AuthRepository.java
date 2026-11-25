@@ -25,25 +25,66 @@ public class AuthRepository {
     public void login(String username, String password, LoginCallback callback) {
         LoginRequest request = new LoginRequest(username, password);
 
+        // Intento 1: api/v1/auth/login
         apiService.login(request).enqueue(new Callback<LoginResponse>() {
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onSuccess(response.body());
+                } else if (response.code() == 404) {
+                    // Intento 2: api/login
+                    tryAlternativeEndpoint(request, username, password, callback);
                 } else {
-                    if (checkLocalFallback(username, password, callback)) {
-                        return;
-                    }
-                    callback.onError("NOK: Credenciales o ruta de API no válida (Error " + response.code() + ")");
+                    if (checkLocalFallback(username, password, callback)) return;
+                    callback.onError("NOK: Error " + response.code() + " desde el servidor de la API");
                 }
             }
 
             @Override
             public void onFailure(Call<LoginResponse> call, Throwable t) {
-                if (checkLocalFallback(username, password, callback)) {
-                    return;
+                // Intento 2 alternativa si falla la red primaria
+                tryAlternativeEndpoint(request, username, password, callback);
+            }
+        });
+    }
+
+    private void tryAlternativeEndpoint(LoginRequest request, String username, String password, LoginCallback callback) {
+        apiService.loginAlternative(request).enqueue(new Callback<LoginResponse>() {
+            @Override
+            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else if (response.code() == 404) {
+                    tryDirectEndpoint(request, username, password, callback);
+                } else {
+                    if (checkLocalFallback(username, password, callback)) return;
+                    callback.onError("NOK: Credenciales rechazadas por el servidor (Error " + response.code() + ")");
                 }
-                callback.onError("NOK: Error de conexión con la API (" + t.getMessage() + ")");
+            }
+
+            @Override
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
+                tryDirectEndpoint(request, username, password, callback);
+            }
+        });
+    }
+
+    private void tryDirectEndpoint(LoginRequest request, String username, String password, LoginCallback callback) {
+        apiService.loginDirect(request).enqueue(new Callback<LoginResponse>() {
+            @Override
+            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    if (checkLocalFallback(username, password, callback)) return;
+                    callback.onError("NOK: Error en autenticación con el servidor (Error " + response.code() + ")");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
+                if (checkLocalFallback(username, password, callback)) return;
+                callback.onError("NOK: No se pudo conectar al servidor (" + t.getMessage() + ")");
             }
         });
     }

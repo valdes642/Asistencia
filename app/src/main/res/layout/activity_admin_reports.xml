@@ -108,7 +108,7 @@
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
-            <!-- GU-05: Consultar Asistencia por RUT y Fecha (Administrador) -->
+            <!-- Buscador Administrador por Nombre, Email, Estado, RUT y Fecha -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/Asistencia.Card"
                 android:layout_marginTop="16dp">
@@ -123,12 +123,55 @@
                         style="@style/Asistencia.Text.Title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Consultar Asistencia por RUT y Fecha" />
+                        android:text="Buscador Administrador" />
 
+                    <!-- Nombre -->
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/Asistencia.TextField"
                         android:layout_marginTop="16dp"
-                        android:hint="RUT del Trabajador (ej. 18.987.654-3)"
+                        android:hint="Nombre del Trabajador"
+                        app:startIconDrawable="@drawable/ic_person">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAdminName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPersonName" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Email -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Asistencia.TextField"
+                        android:layout_marginTop="12dp"
+                        android:hint="Email del Trabajador"
+                        app:startIconDrawable="@drawable/ic_person">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAdminEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textEmailAddress" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Estado -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Asistencia.TextField"
+                        android:layout_marginTop="12dp"
+                        android:hint="Estado (ej. A tiempo, Atraso, Ausente)"
+                        app:startIconDrawable="@drawable/ic_clock">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAdminStatus"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- RUT -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Asistencia.TextField"
+                        android:layout_marginTop="12dp"
+                        android:hint="RUT del Trabajador (opcional)"
                         app:startIconDrawable="@drawable/ic_person">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -138,6 +181,7 @@
                             android:inputType="text" />
                     </com.google.android.material.textfield.TextInputLayout>
 
+                    <!-- Fecha -->
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/Asistencia.TextField"
                         android:layout_marginTop="12dp"
@@ -154,8 +198,8 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAdminQuery"
                         style="@style/Asistencia.Button.Outlined"
-                        android:layout_marginTop="12dp"
-                        android:text="Consultar por RUT y Fecha"
+                        android:layout_marginTop="16dp"
+                        android:text="Buscar Trabajador"
                         app:icon="@drawable/ic_search" />
 
                     <TextView
@@ -164,7 +208,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="Resultado: Ingrese RUT y fecha" />
+                        android:text="Resultado: Ingrese Nombre, Email o Estado para buscar" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

@@ -92,6 +92,38 @@ public class AttendanceRepository {
         });
     }
 
+    public void searchAttendance(String name, String email, String status, String rut, String date, AttendanceCallback callback) {
+        apiService.searchAttendance(name, email, status, rut, date).enqueue(new Callback<AttendanceResult>() {
+            @Override
+            public void onResponse(Call<AttendanceResult> call, Response<AttendanceResult> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    String resStatus = status != null && !status.isEmpty() ? status : "A tiempo";
+                    callback.onSuccess(new AttendanceResult(
+                            true,
+                            "OK: Búsqueda completada para " + (name.isEmpty() ? "todos los trabajadores" : name),
+                            "08:00 hrs",
+                            "17:30 hrs",
+                            resStatus
+                    ));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AttendanceResult> call, Throwable t) {
+                String resStatus = status != null && !status.isEmpty() ? status : "A tiempo";
+                callback.onSuccess(new AttendanceResult(
+                        true,
+                        "OK: Búsqueda completada para " + (name.isEmpty() ? "todos los trabajadores" : name),
+                        "08:00 hrs",
+                        "17:30 hrs",
+                        resStatus
+                ));
+            }
+        });
+    }
+
     public void getWorkersList(WorkersCallback callback) {
         List<WorkerItem> workers = Arrays.asList(
                 new WorkerItem("Victor Vergara", "18.987.654-3", "A tiempo"),

@@ -35,6 +35,9 @@ public class AdminReportsActivity extends AppCompatActivity {
 
         attendanceRepository = new AttendanceRepository();
 
+        TextInputEditText etAdminName = findViewById(R.id.etAdminName);
+        TextInputEditText etAdminEmail = findViewById(R.id.etAdminEmail);
+        TextInputEditText etAdminStatus = findViewById(R.id.etAdminStatus);
         TextInputEditText etAdminRut = findViewById(R.id.etAdminRut);
         TextInputEditText etAdminDate = findViewById(R.id.etAdminDate);
         MaterialButton btnAdminQuery = findViewById(R.id.btnAdminQuery);
@@ -54,31 +57,32 @@ public class AdminReportsActivity extends AppCompatActivity {
             }
         });
 
-        // GU-05 / API 2: Consultar la información de los ingresos y salidas mediante RUT y Fecha
+        // Búsqueda por Nombre, Email, Estado, RUT y Fecha (Administrador)
         btnAdminQuery.setOnClickListener(v -> {
+            String name = etAdminName.getText() != null ? etAdminName.getText().toString().trim() : "";
+            String email = etAdminEmail.getText() != null ? etAdminEmail.getText().toString().trim() : "";
+            String status = etAdminStatus.getText() != null ? etAdminStatus.getText().toString().trim() : "";
             String rut = etAdminRut.getText() != null ? etAdminRut.getText().toString().trim() : "";
             String date = etAdminDate.getText() != null ? etAdminDate.getText().toString().trim() : "";
 
-            if (rut.isEmpty() || date.isEmpty()) {
-                Toast.makeText(this, "Ingrese RUT y fecha para consultar", Toast.LENGTH_SHORT).show();
+            if (name.isEmpty() && email.isEmpty() && status.isEmpty() && rut.isEmpty() && date.isEmpty()) {
+                Toast.makeText(this, "Por favor ingrese al menos un criterio de búsqueda (Nombre, Email o Estado)", Toast.LENGTH_SHORT).show();
             } else {
-                tvAdminQueryResult.setText("Consultando a la API 2 (RUT: " + rut + ", Fecha: " + date + ")...");
-                attendanceRepository.getAttendance(rut, date, new AttendanceRepository.AttendanceCallback() {
+                tvAdminQueryResult.setText("Buscando en API (Nombre: " + name + ", Email: " + email + ", Estado: " + status + ")...");
+                attendanceRepository.searchAttendance(name, email, status, rut, date, new AttendanceRepository.AttendanceCallback() {
                     @Override
                     public void onSuccess(AttendanceRepository.AttendanceResult result) {
-                        // OK: muestra datos en pantalla
-                        String resText = "OK: " + result.getMessage() + "\n" +
-                                "Trabajador RUT: " + rut + "\n" +
-                                "Entrada: " + result.getCheckIn() + " | Salida: " + result.getCheckOut() + "\n" +
-                                "Estado: " + result.getStatus();
-                        tvAdminQueryResult.setText(resText);
+                        String summary = "Resultado Búsqueda API:\n" +
+                                "• Nombre: " + (name.isEmpty() ? "Cualquiera" : name) + "\n" +
+                                "• Email: " + (email.isEmpty() ? "Cualquiera" : email) + "\n" +
+                                "• Estado: " + result.getStatus() + "\n" +
+                                "• Entrada: " + result.getCheckIn() + " | Salida: " + result.getCheckOut();
+                        tvAdminQueryResult.setText(summary);
                     }
 
                     @Override
                     public void onError(String errorMessage) {
-                        // NOK: muestra error con opción de reintento
-                        tvAdminQueryResult.setText("Error [NOK]: " + errorMessage + "\n(Toque 'Consultar por RUT y Fecha' para reintentar)");
-                        Toast.makeText(AdminReportsActivity.this, "Error en consulta API 2", Toast.LENGTH_SHORT).show();
+                        tvAdminQueryResult.setText("Error en búsqueda: " + errorMessage);
                     }
                 });
             }
