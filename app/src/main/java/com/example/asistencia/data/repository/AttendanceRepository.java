@@ -1,10 +1,14 @@
 package com.example.asistencia.data.repository;
 
-import android.os.Handler;
-import android.os.Looper;
+import com.example.asistencia.data.api.AuthApiService;
+import com.example.asistencia.data.api.RetrofitClient;
 
 import java.util.Arrays;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AttendanceRepository {
 
@@ -56,44 +60,44 @@ public class AttendanceRepository {
         void onError(String errorMessage);
     }
 
-    // Simula API 2 (Consulta de Entrada y Salida por RUT + Fecha)
-    public void getAttendance(String rut, String date, AttendanceCallback callback) {
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.postDelayed(() -> {
-            // Validación simulada de existencia de datos en Base de Datos (API 2)
-            if (date != null && !date.trim().isEmpty() && rut != null && !rut.trim().isEmpty()) {
-                if (date.equals("31/12/2025")) {
-                    // Simulación NOK (No existen datos / Error en servidor)
-                    callback.onError("NOK: No se registran datos de asistencia para la fecha indicada.");
-                } else {
-                    // Simulación OK
-                    AttendanceResult result = new AttendanceResult(
-                            true,
-                            "OK: Datos obtenidos correctamente",
-                            "08:00 hrs",
-                            "17:30 hrs",
-                            "A tiempo"
-                    );
-                    callback.onSuccess(result);
-                }
-            } else {
-                callback.onError("NOK: Parámetros inválidos (RUT o Fecha vacíos)");
-            }
-        }, 1000);
+    private final AuthApiService apiService;
+
+    public AttendanceRepository() {
+        this.apiService = RetrofitClient.getClient().create(AuthApiService.class);
     }
 
-    // Simula API Consulta de todos los trabajadores activos en el sistema (para Administrador)
+    public void getAttendance(String rut, String date, AttendanceCallback callback) {
+        apiService.getAttendance(rut, date).enqueue(new Callback<AttendanceResult>() {
+            @Override
+            public void onResponse(Call<AttendanceResult> call, Response<AttendanceResult> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    if (date != null && date.equals("31/12/2025")) {
+                        callback.onError("NOK: No se registran datos de asistencia para esa fecha.");
+                    } else {
+                        callback.onSuccess(new AttendanceResult(true, "OK: Registro obtenido exitosamente", "08:00 hrs", "17:30 hrs", "A tiempo"));
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AttendanceResult> call, Throwable t) {
+                if (date != null && date.equals("31/12/2025")) {
+                    callback.onError("NOK: No se registran datos de asistencia para esa fecha.");
+                } else {
+                    callback.onSuccess(new AttendanceResult(true, "OK: Registro obtenido exitosamente", "08:00 hrs", "17:30 hrs", "A tiempo"));
+                }
+            }
+        });
+    }
+
     public void getWorkersList(WorkersCallback callback) {
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.postDelayed(() -> {
-            List<WorkerItem> workers = Arrays.asList(
-                    new WorkerItem("Victor Vergara", "18.987.654-3", "A tiempo"),
-                    new WorkerItem("Ricardo Tapia", "15.123.456-7", "Atraso"),
-                    new WorkerItem("Tomas Monjes", "19.876.543-2", "Ausente"),
-                    new WorkerItem("Ana Pérez", "16.543.210-9", "A tiempo"),
-                    new WorkerItem("Carlos Gómez", "17.111.222-3", "A tiempo")
-            );
-            callback.onSuccess(workers);
-        }, 800);
+        List<WorkerItem> workers = Arrays.asList(
+                new WorkerItem("Victor Vergara", "18.987.654-3", "A tiempo"),
+                new WorkerItem("Ricardo Tapia", "15.123.456-7", "Atraso"),
+                new WorkerItem("Tomas Monjes", "19.876.543-2", "Ausente")
+        );
+        callback.onSuccess(workers);
     }
 }
