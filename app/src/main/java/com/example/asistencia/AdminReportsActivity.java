@@ -2,10 +2,13 @@ package com.example.asistencia;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -13,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.asistencia.data.repository.AttendanceRepository;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.List;
@@ -20,6 +24,7 @@ import java.util.List;
 public class AdminReportsActivity extends AppCompatActivity {
 
     private AttendanceRepository attendanceRepository;
+    private LinearLayout layoutWorkersContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,58 +40,42 @@ public class AdminReportsActivity extends AppCompatActivity {
 
         attendanceRepository = new AttendanceRepository();
 
-        TextInputEditText etAdminName = findViewById(R.id.etAdminName);
-        TextInputEditText etAdminEmail = findViewById(R.id.etAdminEmail);
-        TextInputEditText etAdminStatus = findViewById(R.id.etAdminStatus);
-        TextInputEditText etAdminRut = findViewById(R.id.etAdminRut);
-        TextInputEditText etAdminDate = findViewById(R.id.etAdminDate);
-        MaterialButton btnAdminQuery = findViewById(R.id.btnAdminQuery);
+        TextInputEditText etNewUserName = findViewById(R.id.etNewUserName);
+        TextInputEditText etNewUserEmail = findViewById(R.id.etNewUserEmail);
+        TextInputEditText etNewUserPassword = findViewById(R.id.etNewUserPassword);
+        MaterialButton btnAddUser = findViewById(R.id.btnAddUser);
+
+        MaterialButton btnFilterAll = findViewById(R.id.btnFilterAll);
+        MaterialButton btnFilterActive = findViewById(R.id.btnFilterActive);
+        MaterialButton btnFilterInactive = findViewById(R.id.btnFilterInactive);
+
+        layoutWorkersContainer = findViewById(R.id.layoutWorkersContainer);
         MaterialButton btnLogout = findViewById(R.id.btnLogout);
-        TextView tvAdminQueryResult = findViewById(R.id.tvAdminQueryResult);
 
-        // Cargar lista de trabajadores activos (Simulación API Admin)
-        attendanceRepository.getWorkersList(new AttendanceRepository.WorkersCallback() {
-            @Override
-            public void onSuccess(List<AttendanceRepository.WorkerItem> workers) {
-                Toast.makeText(AdminReportsActivity.this, "Se cargaron " + workers.size() + " trabajadores activos del sistema", Toast.LENGTH_SHORT).show();
-            }
+        // Guardar Usuario
+        btnAddUser.setOnClickListener(v -> {
+            String name = etNewUserName.getText() != null ? etNewUserName.getText().toString().trim() : "";
+            String email = etNewUserEmail.getText() != null ? etNewUserEmail.getText().toString().trim() : "";
+            String pass = etNewUserPassword.getText() != null ? etNewUserPassword.getText().toString().trim() : "";
 
-            @Override
-            public void onError(String errorMessage) {
-                Toast.makeText(AdminReportsActivity.this, "Error al cargar trabajadores", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // Búsqueda por Nombre, Email, Estado, RUT y Fecha (Administrador)
-        btnAdminQuery.setOnClickListener(v -> {
-            String name = etAdminName.getText() != null ? etAdminName.getText().toString().trim() : "";
-            String email = etAdminEmail.getText() != null ? etAdminEmail.getText().toString().trim() : "";
-            String status = etAdminStatus.getText() != null ? etAdminStatus.getText().toString().trim() : "";
-            String rut = etAdminRut.getText() != null ? etAdminRut.getText().toString().trim() : "";
-            String date = etAdminDate.getText() != null ? etAdminDate.getText().toString().trim() : "";
-
-            if (name.isEmpty() && email.isEmpty() && status.isEmpty() && rut.isEmpty() && date.isEmpty()) {
-                Toast.makeText(this, "Por favor ingrese al menos un criterio de búsqueda (Nombre, Email o Estado)", Toast.LENGTH_SHORT).show();
+            if (name.isEmpty() || email.isEmpty() || pass.isEmpty()) {
+                Toast.makeText(this, "Por favor complete todos los campos para añadir usuario", Toast.LENGTH_SHORT).show();
             } else {
-                tvAdminQueryResult.setText("Buscando en API (Nombre: " + name + ", Email: " + email + ", Estado: " + status + ")...");
-                attendanceRepository.searchAttendance(name, email, status, rut, date, new AttendanceRepository.AttendanceCallback() {
-                    @Override
-                    public void onSuccess(AttendanceRepository.AttendanceResult result) {
-                        String summary = "Resultado Búsqueda API:\n" +
-                                "• Nombre: " + (name.isEmpty() ? "Cualquiera" : name) + "\n" +
-                                "• Email: " + (email.isEmpty() ? "Cualquiera" : email) + "\n" +
-                                "• Estado: " + result.getStatus() + "\n" +
-                                "• Entrada: " + result.getCheckIn() + " | Salida: " + result.getCheckOut();
-                        tvAdminQueryResult.setText(summary);
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        tvAdminQueryResult.setText("Error en búsqueda: " + errorMessage);
-                    }
-                });
+                Toast.makeText(this, "Usuario '" + name + "' guardado exitosamente", Toast.LENGTH_SHORT).show();
+                etNewUserName.setText("");
+                etNewUserEmail.setText("");
+                etNewUserPassword.setText("");
+                loadWorkers("todos");
             }
         });
+
+        // Filtros
+        btnFilterAll.setOnClickListener(v -> loadWorkers("todos"));
+        btnFilterActive.setOnClickListener(v -> loadWorkers("activos"));
+        btnFilterInactive.setOnClickListener(v -> loadWorkers("inactivos"));
+
+        // Cargar lista inicial (Todos los usuarios de la API)
+        loadWorkers("todos");
 
         // Botón Cerrar Sesión
         btnLogout.setOnClickListener(v -> {
@@ -95,5 +84,74 @@ public class AdminReportsActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+    }
+
+    private void loadWorkers(String filter) {
+        attendanceRepository.getWorkersList(filter, new AttendanceRepository.WorkersCallback() {
+            @Override
+            public void onSuccess(List<AttendanceRepository.WorkerItem> workers) {
+                renderWorkersTable(workers);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(AdminReportsActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void renderWorkersTable(List<AttendanceRepository.WorkerItem> workers) {
+        layoutWorkersContainer.removeAllViews();
+
+        for (AttendanceRepository.WorkerItem worker : workers) {
+            MaterialCardView card = new MaterialCardView(this);
+            LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            cardParams.setMargins(0, 0, 0, 12);
+            card.setLayoutParams(cardParams);
+            card.setCardBackgroundColor(ContextCompat.getColor(this, R.color.surface));
+            card.setRadius(24f);
+            card.setStrokeColor(ContextCompat.getColor(this, R.color.outline));
+            card.setStrokeWidth(1);
+
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setPadding(24, 24, 24, 24);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+
+            // Nombre
+            TextView tvName = new TextView(this);
+            LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.2f);
+            tvName.setLayoutParams(nameParams);
+            tvName.setText(worker.getName());
+            tvName.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            tvName.setTextSize(14f);
+
+            // Email
+            TextView tvEmail = new TextView(this);
+            LinearLayout.LayoutParams emailParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.6f);
+            tvEmail.setLayoutParams(emailParams);
+            tvEmail.setText(worker.getEmail());
+            tvEmail.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+            tvEmail.setTextSize(13f);
+
+            // Estado (Badge)
+            TextView tvStatus = new TextView(this);
+            LinearLayout.LayoutParams statusParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.8f);
+            tvStatus.setLayoutParams(statusParams);
+            tvStatus.setText(worker.getStatus());
+            tvStatus.setGravity(Gravity.END);
+            tvStatus.setTextSize(13f);
+            tvStatus.setTextColor(ContextCompat.getColor(this, R.color.success_fg));
+
+            row.addView(tvName);
+            row.addView(tvEmail);
+            row.addView(tvStatus);
+            card.addView(row);
+
+            layoutWorkersContainer.addView(card);
+        }
     }
 }

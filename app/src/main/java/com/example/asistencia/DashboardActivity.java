@@ -2,11 +2,14 @@ package com.example.asistencia;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -14,18 +17,19 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.asistencia.data.repository.AttendanceRepository;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class DashboardActivity extends AppCompatActivity {
 
-    private boolean isCheckedIn = false;
-    private TextView tvClockStatus;
-    private MaterialButton btnClockAction;
     private AttendanceRepository attendanceRepository;
+    private LinearLayout layoutHistoryContainer;
+    private TextInputEditText etUserEmailInput;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,61 +56,23 @@ public class DashboardActivity extends AppCompatActivity {
 
         TextView tvUserGreeting = findViewById(R.id.tvUserGreeting);
         TextView tvUserRut = findViewById(R.id.tvUserRut);
-        tvClockStatus = findViewById(R.id.tvClockStatus);
-        btnClockAction = findViewById(R.id.btnClockAction);
+        etUserEmailInput = findViewById(R.id.etUserEmailInput);
+        MaterialButton btnRegisterCheckIn = findViewById(R.id.btnRegisterCheckIn);
+        MaterialButton btnRegisterCheckOut = findViewById(R.id.btnRegisterCheckOut);
         MaterialButton btnOpenAdmin = findViewById(R.id.btnOpenAdmin);
         MaterialButton btnLogout = findViewById(R.id.btnLogout);
-        TextInputEditText etQueryDate = findViewById(R.id.etQueryDate);
-        MaterialButton btnQueryAttendance = findViewById(R.id.btnQueryAttendance);
-        TextView tvQueryResult = findViewById(R.id.tvQueryResult);
+        layoutHistoryContainer = findViewById(R.id.layoutHistoryContainer);
 
         tvUserGreeting.setText("Hola, " + name);
         tvUserRut.setText("RUT: " + rut);
 
-        String currentTimeStr = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+        // Prellenar email si está disponible
+        if (username != null && username.contains("@")) {
+            etUserEmailInput.setText(username);
+        }
 
-        btnClockAction.setOnClickListener(v -> {
-            if (!isCheckedIn) {
-                isCheckedIn = true;
-                tvClockStatus.setText("Estado: Entrada registrada a las " + currentTimeStr);
-                btnClockAction.setText("Marcar Salida");
-                Toast.makeText(this, "¡Entrada registrada exitosamente!", Toast.LENGTH_SHORT).show();
-            } else {
-                isCheckedIn = false;
-                tvClockStatus.setText("Estado: Jornada finalizada");
-                btnClockAction.setText("Marcar Entrada");
-                btnClockAction.setEnabled(false);
-                Toast.makeText(this, "¡Salida registrada exitosamente!", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // GU-05 / API 2: Consultar asistencia enviando RUT + Fecha
-        final String workerRut = rut;
-        btnQueryAttendance.setOnClickListener(v -> {
-            String queryDate = etQueryDate.getText() != null ? etQueryDate.getText().toString().trim() : "";
-            if (queryDate.isEmpty()) {
-                Toast.makeText(this, "Ingrese una fecha para consultar", Toast.LENGTH_SHORT).show();
-            } else {
-                tvQueryResult.setText("Consultando a la API 2 (RUT: " + workerRut + ", Fecha: " + queryDate + ")...");
-                attendanceRepository.getAttendance(workerRut, queryDate, new AttendanceRepository.AttendanceCallback() {
-                    @Override
-                    public void onSuccess(AttendanceRepository.AttendanceResult result) {
-                        // OK: muestra datos en pantalla
-                        String resText = "OK: " + result.getMessage() + "\n" +
-                                "Entrada: " + result.getCheckIn() + " | Salida: " + result.getCheckOut() + "\n" +
-                                "Estado: " + result.getStatus();
-                        tvQueryResult.setText(resText);
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        // NOK: muestra mensaje de error con opción de reintento
-                        tvQueryResult.setText("Error [NOK]: " + errorMessage + "\n(Toque 'Buscar Registro' para reintentar)");
-                        Toast.makeText(DashboardActivity.this, "Error en consulta API 2", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
+        btnRegisterCheckIn.setOnClickListener(v -> registerEvent("entrada"));
+        btnRegisterCheckOut.setOnClickListener(v -> registerEvent("salida"));
 
         // Mostrar botón de Admin si el rol es admin
         if ("admin".equalsIgnoreCase(role)) {
@@ -120,12 +86,108 @@ public class DashboardActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Botón Cerrar Sesión
         btnLogout.setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         });
+
+        // Cargar historial reciente
+        loadHistory();
+    }
+
+    private void registerEvent(String type) {
+        String email = etUserEmailInput.getText() != null ? etUserEmailInput.getText().toString().trim() : "";
+        if (email.isEmpty()) {
+            Toast.makeText(this, "Ingrese el email del usuario para registrar", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String nowTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        Toast.makeText(this, "Registrado " + type + " exitosamente para " + email + " a las " + nowTime, Toast.LENGTH_SHORT).show();
+        loadHistory();
+    }
+
+    private void loadHistory() {
+        attendanceRepository.getAttendanceHistory(new AttendanceRepository.HistoryCallback() {
+            @Override
+            public void onSuccess(List<AttendanceRepository.AttendanceItem> history) {
+                renderHistoryTable(history);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(DashboardActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void renderHistoryTable(List<AttendanceRepository.AttendanceItem> history) {
+        layoutHistoryContainer.removeAllViews();
+
+        for (AttendanceRepository.AttendanceItem item : history) {
+            MaterialCardView card = new MaterialCardView(this);
+            LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            cardParams.setMargins(0, 0, 0, 10);
+            card.setLayoutParams(cardParams);
+            card.setCardBackgroundColor(ContextCompat.getColor(this, R.color.surface));
+            card.setRadius(20f);
+            card.setStrokeColor(ContextCompat.getColor(this, R.color.outline));
+            card.setStrokeWidth(1);
+
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setPadding(20, 20, 20, 20);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+
+            // Usuario
+            TextView tvUser = new TextView(this);
+            LinearLayout.LayoutParams userParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.1f);
+            tvUser.setLayoutParams(userParams);
+            tvUser.setText(item.getUser());
+            tvUser.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            tvUser.setTextSize(13f);
+
+            // Email
+            TextView tvEmail = new TextView(this);
+            LinearLayout.LayoutParams emailParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.4f);
+            tvEmail.setLayoutParams(emailParams);
+            tvEmail.setText(item.getEmail());
+            tvEmail.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+            tvEmail.setTextSize(12f);
+
+            // Tipo (entrada/salida)
+            TextView tvType = new TextView(this);
+            LinearLayout.LayoutParams typeParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.8f);
+            tvType.setLayoutParams(typeParams);
+            tvType.setText(item.getType());
+            tvType.setTextSize(12f);
+            if ("entrada".equalsIgnoreCase(item.getType())) {
+                tvType.setTextColor(ContextCompat.getColor(this, R.color.success_fg));
+            } else {
+                tvType.setTextColor(ContextCompat.getColor(this, R.color.warning_fg));
+            }
+
+            // Hora
+            TextView tvTime = new TextView(this);
+            LinearLayout.LayoutParams timeParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.3f);
+            tvTime.setLayoutParams(timeParams);
+            tvTime.setText(item.getTime());
+            tvTime.setGravity(Gravity.END);
+            tvTime.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            tvTime.setTextSize(12f);
+
+            row.addView(tvUser);
+            row.addView(tvEmail);
+            row.addView(tvType);
+            row.addView(tvTime);
+            card.addView(row);
+
+            layoutHistoryContainer.addView(card);
+        }
     }
 }

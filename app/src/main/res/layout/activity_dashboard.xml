@@ -41,7 +41,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:text="Hola, Victor Vergara"
+                android:text="Hola, Camila Rojas"
                 android:textColor="@color/on_hero"
                 android:textSize="24sp" />
 
@@ -50,7 +50,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="RUT: 18.987.654-3"
+                android:text="camila.rojas@empresa.cl"
                 android:textColor="@color/on_hero_muted"
                 android:textSize="14sp" />
         </LinearLayout>
@@ -71,49 +71,8 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- Marcar entrada y salida -->
+            <!-- Estado de Marcas (Paso 6: Entrada Reflejada | Paso 9: Salida Reflejada) -->
             <com.google.android.material.card.MaterialCardView style="@style/Asistencia.Card">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <TextView
-                        android:id="@+id/tvClockStatus"
-                        style="@style/Asistencia.Text.Body"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="Estado: No has marcado entrada hoy" />
-
-                    <TextView
-                        android:id="@+id/tvCurrentTime"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:fontFeatureSettings="tnum"
-                        android:text="08:30:00"
-                        android:textColor="@color/text_primary"
-                        android:textSize="44sp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnClockAction"
-                        style="@style/Asistencia.Button"
-                        android:layout_marginTop="20dp"
-                        android:text="Marcar Entrada"
-                        app:icon="@drawable/ic_clock" />
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- GU-05: Consultar Asistencia por Fecha (Trabajador) -->
-            <com.google.android.material.card.MaterialCardView
-                style="@style/Asistencia.Card"
-                android:layout_marginTop="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -125,43 +84,144 @@
                         style="@style/Asistencia.Text.Title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Consultar Asistencia por Fecha" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Asistencia.TextField"
-                        android:layout_marginTop="16dp"
-                        android:hint="Fecha (ej. DD/MM/AAAA)"
-                        app:startIconDrawable="@drawable/ic_calendar">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etQueryDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="date" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnQueryAttendance"
-                        style="@style/Asistencia.Button.Outlined"
-                        android:layout_marginTop="12dp"
-                        android:text="Buscar Registro"
-                        app:icon="@drawable/ic_search" />
+                        android:text="Estado de Asistencia en Tiempo Real"
+                        android:textSize="16sp" />
 
                     <TextView
-                        android:id="@+id/tvQueryResult"
+                        android:id="@+id/tvLiveStatus"
                         style="@style/Asistencia.Text.Body"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="Resultado: Seleccione una fecha para consultar" />
+                        android:layout_marginTop="8dp"
+                        android:text="Esperando sincronización con el servidor..."
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+
+                    <!-- Botón para Refrescar/Sincronizar (Paso 6 y 9) -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRefreshLive"
+                        style="@style/Asistencia.Button"
+                        android:layout_marginTop="16dp"
+                        android:text="Actualizar Marcas (Sincronizar)"
+                        app:icon="@drawable/ic_clock" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card de Registro Manual si se requiere -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Asistencia.Card"
+                android:layout_marginTop="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Asistencia.TextField"
+                        android:hint="Email del usuario"
+                        app:startIconDrawable="@drawable/ic_person">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etUserEmailInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textEmailAddress" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnRegisterCheckIn"
+                            style="@style/Asistencia.Button"
+                            android:layout_width="0dp"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="1"
+                            android:text="Registrar Entrada" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnRegisterCheckOut"
+                            style="@style/Asistencia.Button.Tonal"
+                            android:layout_width="0dp"
+                            android:layout_marginStart="6dp"
+                            android:layout_weight="1"
+                            android:text="Registrar Salida" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Sección Historial Reciente -->
+            <TextView
+                style="@style/Asistencia.Text.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="12dp"
+                android:text="Historial reciente"
+                android:textSize="18sp" />
+
+            <!-- Encabezado Tabla Historial: Usuario | Email | Tipo | Hora -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_sheet"
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp">
+
+                <TextView
+                    style="@style/Asistencia.Text.Title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.1"
+                    android:text="Usuario"
+                    android:textSize="13sp" />
+
+                <TextView
+                    style="@style/Asistencia.Text.Title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.4"
+                    android:text="Email"
+                    android:textSize="13sp" />
+
+                <TextView
+                    style="@style/Asistencia.Text.Title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.8"
+                    android:text="Tipo"
+                    android:textSize="13sp" />
+
+                <TextView
+                    style="@style/Asistencia.Text.Title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.3"
+                    android:gravity="end"
+                    android:text="Hora"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Contenedor Dinámico del Historial -->
+            <LinearLayout
+                android:id="@+id/layoutHistoryContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
 
             <!-- Solo visible para administradores -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnOpenAdmin"
                 style="@style/Asistencia.Button.Tonal"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="20dp"
                 android:text="Ir a Panel Administrador"
                 android:visibility="gone"
                 app:icon="@drawable/ic_shield" />

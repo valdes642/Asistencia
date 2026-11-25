@@ -42,76 +42,10 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- Resumen -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:baselineAligned="false"
-                android:orientation="horizontal">
-
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/Asistencia.Card"
-                    android:layout_width="0dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            style="@style/Asistencia.Text.Body"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Asistencias Hoy"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            style="@style/Asistencia.Text.Metric"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="22 / 25"
-                            android:textColor="@color/success_fg" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/Asistencia.Card"
-                    android:layout_width="0dp"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            style="@style/Asistencia.Text.Body"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Atrasos / Inasist."
-                            android:textSize="13sp" />
-
-                        <TextView
-                            style="@style/Asistencia.Text.Metric"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="3"
-                            android:textColor="@color/danger_fg" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </LinearLayout>
-
-            <!-- Buscador Administrador por Nombre, Email, Estado, RUT y Fecha -->
+            <!-- Formulario Añadir Usuario -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/Asistencia.Card"
-                android:layout_marginTop="16dp">
+                android:layout_marginBottom="20dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -123,17 +57,18 @@
                         style="@style/Asistencia.Text.Title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Buscador Administrador" />
+                        android:text="Añadir Usuario"
+                        android:textSize="18sp" />
 
                     <!-- Nombre -->
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/Asistencia.TextField"
-                        android:layout_marginTop="16dp"
-                        android:hint="Nombre del Trabajador"
+                        android:layout_marginTop="14dp"
+                        android:hint="Nombre"
                         app:startIconDrawable="@drawable/ic_person">
 
                         <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etAdminName"
+                            android:id="@+id/etNewUserName"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="textPersonName" />
@@ -143,223 +78,125 @@
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/Asistencia.TextField"
                         android:layout_marginTop="12dp"
-                        android:hint="Email del Trabajador"
+                        android:hint="Email"
                         app:startIconDrawable="@drawable/ic_person">
 
                         <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etAdminEmail"
+                            android:id="@+id/etNewUserEmail"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="textEmailAddress" />
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Estado -->
+                    <!-- Contraseña -->
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/Asistencia.TextField"
                         android:layout_marginTop="12dp"
-                        android:hint="Estado (ej. A tiempo, Atraso, Ausente)"
-                        app:startIconDrawable="@drawable/ic_clock">
+                        android:hint="Contraseña"
+                        app:endIconMode="password_toggle"
+                        app:startIconDrawable="@drawable/ic_lock">
 
                         <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etAdminStatus"
+                            android:id="@+id/etNewUserPassword"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="text" />
+                            android:inputType="textPassword" />
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- RUT -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Asistencia.TextField"
-                        android:layout_marginTop="12dp"
-                        android:hint="RUT del Trabajador (opcional)"
-                        app:startIconDrawable="@drawable/ic_person">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etAdminRut"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="text" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Fecha -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Asistencia.TextField"
-                        android:layout_marginTop="12dp"
-                        android:hint="Fecha (ej. DD/MM/AAAA)"
-                        app:startIconDrawable="@drawable/ic_calendar">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etAdminDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="date" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
+                    <!-- Guardar Usuario -->
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAdminQuery"
-                        style="@style/Asistencia.Button.Outlined"
+                        android:id="@+id/btnAddUser"
+                        style="@style/Asistencia.Button"
                         android:layout_marginTop="16dp"
-                        android:text="Buscar Trabajador"
-                        app:icon="@drawable/ic_search" />
-
-                    <TextView
-                        android:id="@+id/tvAdminQueryResult"
-                        style="@style/Asistencia.Text.Body"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="Resultado: Ingrese Nombre, Email o Estado para buscar" />
+                        android:text="Guardar Usuario" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                style="@style/Asistencia.Text.Title"
-                android:layout_width="wrap_content"
+            <!-- Filtros: Todos / Activos / Inactivos -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="12dp"
-                android:text="Control de Personal por Estado" />
+                android:orientation="horizontal">
 
-            <!-- Trabajador 1 -->
-            <com.google.android.material.card.MaterialCardView
-                style="@style/Asistencia.Card"
-                android:layout_marginBottom="8dp"
-                app:cardCornerRadius="16dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFilterAll"
+                    style="@style/Asistencia.Button.Tonal"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:text="Todos"
+                    android:textSize="13sp" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFilterActive"
+                    style="@style/Asistencia.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_marginHorizontal="4dp"
+                    android:layout_weight="1"
+                    android:text="Activos"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFilterInactive"
+                    style="@style/Asistencia.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_weight="1"
+                    android:text="Inactivos"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Encabezado Tabla Usuarios: Nombre | Email | Estado -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_sheet"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="10dp">
+
+                <TextView
+                    style="@style/Asistencia.Text.Title"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
+                    android:layout_weight="1.2"
+                    android:text="Nombre"
+                    android:textSize="14sp" />
 
-                    <TextView
-                        style="@style/Asistencia.Avatar"
-                        android:text="VV" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            style="@style/Asistencia.Text.Title"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Victor Vergara"
-                            android:textSize="15sp" />
-
-                        <TextView
-                            style="@style/Asistencia.Text.Body"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="18.987.654-3 · Entrada: 08:00 hrs"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-
-                    <TextView
-                        style="@style/Asistencia.Chip.Success"
-                        android:text="A tiempo" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Trabajador 2 -->
-            <com.google.android.material.card.MaterialCardView
-                style="@style/Asistencia.Card"
-                android:layout_marginBottom="8dp"
-                app:cardCornerRadius="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    style="@style/Asistencia.Text.Title"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
+                    android:layout_weight="1.6"
+                    android:text="Email"
+                    android:textSize="14sp" />
 
-                    <TextView
-                        style="@style/Asistencia.Avatar"
-                        android:text="RT" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            style="@style/Asistencia.Text.Title"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Ricardo Tapia"
-                            android:textSize="15sp" />
-
-                        <TextView
-                            style="@style/Asistencia.Text.Body"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="15.123.456-7 · Entrada: 08:45 hrs"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-
-                    <TextView
-                        style="@style/Asistencia.Chip.Warning"
-                        android:text="Atraso" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Trabajador 3 -->
-            <com.google.android.material.card.MaterialCardView
-                style="@style/Asistencia.Card"
-                android:layout_marginBottom="8dp"
-                app:cardCornerRadius="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    style="@style/Asistencia.Text.Title"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
+                    android:layout_weight="0.8"
+                    android:gravity="end"
+                    android:text="Estado"
+                    android:textSize="14sp" />
+            </LinearLayout>
 
-                    <TextView
-                        style="@style/Asistencia.Avatar"
-                        android:text="TM" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            style="@style/Asistencia.Text.Title"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Tomas Monjes"
-                            android:textSize="15sp" />
-
-                        <TextView
-                            style="@style/Asistencia.Text.Body"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="19.876.543-2 · Sin registro"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-
-                    <TextView
-                        style="@style/Asistencia.Chip.Danger"
-                        android:text="Ausente" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            <!-- Contenedor Dinámico de Lista de Usuarios -->
+            <LinearLayout
+                android:id="@+id/layoutWorkersContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
 
             <!-- Cerrar Sesión -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLogout"
                 style="@style/Asistencia.Button.Outlined"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="24dp"
                 android:layout_marginBottom="24dp"
                 android:text="Cerrar Sesión"
                 app:strokeColor="@color/danger_fg" />

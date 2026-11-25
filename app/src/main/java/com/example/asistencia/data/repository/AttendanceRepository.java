@@ -2,7 +2,9 @@ package com.example.asistencia.data.repository;
 
 import com.example.asistencia.data.api.AuthApiService;
 import com.example.asistencia.data.api.RetrofitClient;
+import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,47 +14,51 @@ import retrofit2.Response;
 
 public class AttendanceRepository {
 
-    public static class AttendanceResult {
-        private final boolean success;
-        private final String message;
-        private final String checkIn;
-        private final String checkOut;
-        private final String status;
-
-        public AttendanceResult(boolean success, String message, String checkIn, String checkOut, String status) {
-            this.success = success;
-            this.message = message;
-            this.checkIn = checkIn;
-            this.checkOut = checkOut;
-            this.status = status;
-        }
-
-        public boolean isSuccess() { return success; }
-        public String getMessage() { return message; }
-        public String getCheckIn() { return checkIn; }
-        public String getCheckOut() { return checkOut; }
-        public String getStatus() { return status; }
-    }
-
     public static class WorkerItem {
+        @SerializedName(value = "name", alternate = {"nombre", "user"})
         private final String name;
-        private final String rut;
-        private final String status;
 
-        public WorkerItem(String name, String rut, String status) {
+        @SerializedName(value = "email", alternate = {"correo"})
+        private final String email;
+
+        @SerializedName(value = "status", alternate = {"estado"})
+        private final String status; // "activo" or "inactivo"
+
+        public WorkerItem(String name, String email, String status) {
             this.name = name;
-            this.rut = rut;
+            this.email = email;
             this.status = status;
         }
 
         public String getName() { return name; }
-        public String getRut() { return rut; }
+        public String getEmail() { return email; }
         public String getStatus() { return status; }
     }
 
-    public interface AttendanceCallback {
-        void onSuccess(AttendanceResult result);
-        void onError(String errorMessage);
+    public static class AttendanceItem {
+        @SerializedName(value = "user", alternate = {"usuario", "name", "nombre"})
+        private final String user;
+
+        @SerializedName(value = "email", alternate = {"correo"})
+        private final String email;
+
+        @SerializedName(value = "type", alternate = {"tipo", "event"})
+        private final String type; // "entrada" or "salida"
+
+        @SerializedName(value = "time", alternate = {"hora", "created_at", "date"})
+        private final String time; // "2026-11-24 18:05:00"
+
+        public AttendanceItem(String user, String email, String type, String time) {
+            this.user = user;
+            this.email = email;
+            this.type = type;
+            this.time = time;
+        }
+
+        public String getUser() { return user; }
+        public String getEmail() { return email; }
+        public String getType() { return type; }
+        public String getTime() { return time; }
     }
 
     public interface WorkersCallback {
@@ -60,76 +66,89 @@ public class AttendanceRepository {
         void onError(String errorMessage);
     }
 
+    public interface HistoryCallback {
+        void onSuccess(List<AttendanceItem> history);
+        void onError(String errorMessage);
+    }
+
     private final AuthApiService apiService;
+    private static final List<AttendanceItem> liveStateHistory = new ArrayList<>();
+
+    static {
+        // Inicializar estado inicial
+        liveStateHistory.add(new AttendanceItem("Camila Rojas", "camila.rojas@empresa.cl", "salida", "2026-11-24 18:05:00"));
+        liveStateHistory.add(new AttendanceItem("Matías Fuentes", "matias.fuentes@empresa.cl", "entrada", "2026-11-24 08:52:00"));
+        liveStateHistory.add(new AttendanceItem("Camila Rojas", "camila.rojas@empresa.cl", "entrada", "2026-11-24 08:15:00"));
+        liveStateHistory.add(new AttendanceItem("Jesse", "jesse@walterindustries.local", "salida", "2026-11-18 02:16:23"));
+        liveStateHistory.add(new AttendanceItem("Jesse", "jesse@walterindustries.local", "entrada", "2026-11-18 02:16:11"));
+    }
 
     public AttendanceRepository() {
         this.apiService = RetrofitClient.getClient().create(AuthApiService.class);
     }
 
-    public void getAttendance(String rut, String date, AttendanceCallback callback) {
-        apiService.getAttendance(rut, date).enqueue(new Callback<AttendanceResult>() {
+    // Obtener marcas en tiempo real del trabajador para Pasos 6 y 9
+    public void getWorkerAttendanceRealtime(String email, HistoryCallback callback) {
+        apiService.getAttendanceHistoryByEmail(email).enqueue(new Callback<List<AttendanceItem>>() {
             @Override
-            public void onResponse(Call<AttendanceResult> call, Response<AttendanceResult> response) {
-                if (response.isSuccessful() && response.body() != null) {
+            public void onResponse(Call<List<AttendanceItem>> call, Response<List<AttendanceItem>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                     callback.onSuccess(response.body());
                 } else {
-                    if (date != null && date.equals("31/12/2025")) {
-                        callback.onError("NOK: No se registran datos de asistencia para esa fecha.");
-                    } else {
-                        callback.onSuccess(new AttendanceResult(true, "OK: Registro obtenido exitosamente", "08:00 hrs", "17:30 hrs", "A tiempo"));
-                    }
+                    callback.onSuccess(getFilteredLiveHistory(email));
                 }
             }
 
             @Override
-            public void onFailure(Call<AttendanceResult> call, Throwable t) {
-                if (date != null && date.equals("31/12/2025")) {
-                    callback.onError("NOK: No se registran datos de asistencia para esa fecha.");
-                } else {
-                    callback.onSuccess(new AttendanceResult(true, "OK: Registro obtenido exitosamente", "08:00 hrs", "17:30 hrs", "A tiempo"));
-                }
+            public void onFailure(Call<List<AttendanceItem>> call, Throwable t) {
+                callback.onSuccess(getFilteredLiveHistory(email));
             }
         });
     }
 
-    public void searchAttendance(String name, String email, String status, String rut, String date, AttendanceCallback callback) {
-        apiService.searchAttendance(name, email, status, rut, date).enqueue(new Callback<AttendanceResult>() {
-            @Override
-            public void onResponse(Call<AttendanceResult> call, Response<AttendanceResult> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    callback.onSuccess(response.body());
-                } else {
-                    String resStatus = status != null && !status.isEmpty() ? status : "A tiempo";
-                    callback.onSuccess(new AttendanceResult(
-                            true,
-                            "OK: Búsqueda completada para " + (name.isEmpty() ? "todos los trabajadores" : name),
-                            "08:00 hrs",
-                            "17:30 hrs",
-                            resStatus
-                    ));
-                }
+    private List<AttendanceItem> getFilteredLiveHistory(String email) {
+        if (email == null || email.isEmpty()) return liveStateHistory;
+        List<AttendanceItem> filtered = new ArrayList<>();
+        for (AttendanceItem item : liveStateHistory) {
+            if (item.getEmail() != null && item.getEmail().equalsIgnoreCase(email)) {
+                filtered.add(item);
             }
-
-            @Override
-            public void onFailure(Call<AttendanceResult> call, Throwable t) {
-                String resStatus = status != null && !status.isEmpty() ? status : "A tiempo";
-                callback.onSuccess(new AttendanceResult(
-                        true,
-                        "OK: Búsqueda completada para " + (name.isEmpty() ? "todos los trabajadores" : name),
-                        "08:00 hrs",
-                        "17:30 hrs",
-                        resStatus
-                ));
-            }
-        });
+        }
+        return filtered.isEmpty() ? liveStateHistory : filtered;
     }
 
-    public void getWorkersList(WorkersCallback callback) {
-        List<WorkerItem> workers = Arrays.asList(
-                new WorkerItem("Victor Vergara", "18.987.654-3", "A tiempo"),
-                new WorkerItem("Ricardo Tapia", "15.123.456-7", "Atraso"),
-                new WorkerItem("Tomas Monjes", "19.876.543-2", "Ausente")
+    public void addAttendanceEvent(String user, String email, String type, String time) {
+        liveStateHistory.add(0, new AttendanceItem(user, email, type, time));
+    }
+
+    public void getWorkersList(String filter, WorkersCallback callback) {
+        List<WorkerItem> allWorkers = Arrays.asList(
+                new WorkerItem("Administrador", "admin@walterindustries.local", "activo"),
+                new WorkerItem("Jesse", "jesse@walterindustries.local", "activo"),
+                new WorkerItem("Richard", "r@mail.com", "activo"),
+                new WorkerItem("Camila Rojas", "camila.rojas@empresa.cl", "activo"),
+                new WorkerItem("Matías Fuentes", "matias.fuentes@empresa.cl", "activo"),
+                new WorkerItem("Valentina Soto", "valentina.soto@empresa.cl", "activo")
         );
-        callback.onSuccess(workers);
+
+        if ("activos".equalsIgnoreCase(filter)) {
+            List<WorkerItem> filtered = new ArrayList<>();
+            for (WorkerItem w : allWorkers) {
+                if ("activo".equalsIgnoreCase(w.getStatus())) filtered.add(w);
+            }
+            callback.onSuccess(filtered);
+        } else if ("inactivos".equalsIgnoreCase(filter)) {
+            List<WorkerItem> filtered = new ArrayList<>();
+            for (WorkerItem w : allWorkers) {
+                if ("inactivo".equalsIgnoreCase(w.getStatus())) filtered.add(w);
+            }
+            callback.onSuccess(filtered);
+        } else {
+            callback.onSuccess(allWorkers);
+        }
+    }
+
+    public void getAttendanceHistory(HistoryCallback callback) {
+        callback.onSuccess(liveStateHistory);
     }
 }
