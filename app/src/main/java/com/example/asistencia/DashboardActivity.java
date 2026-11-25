@@ -2,6 +2,8 @@ package com.example.asistencia;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -30,6 +32,19 @@ public class DashboardActivity extends AppCompatActivity {
     private AttendanceRepository attendanceRepository;
     private LinearLayout layoutHistoryContainer;
     private TextInputEditText etUserEmailInput;
+    private TextView tvLiveStatus;
+    private String currentWorkerEmail;
+    private String currentWorkerName;
+
+    // Handler para auto-sincronización en tiempo real cada 3 segundos
+    private final Handler autoSyncHandler = new Handler(Looper.getMainLooper());
+    private final Runnable autoSyncRunnable = new Runnable() {
+        @Override
+        public void run() {
+            syncRealtimeStatus();
+            autoSyncHandler.postDelayed(this, 3000);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,31 +65,32 @@ public class DashboardActivity extends AppCompatActivity {
         String rut = getIntent().getStringExtra("RUT");
         String name = getIntent().getStringExtra("NAME");
 
-        if (name == null || name.isEmpty()) name = username != null ? username : "Colaborador";
-        if (rut == null || rut.isEmpty()) rut = "18.987.654-3";
+        if (name == null || name.isEmpty()) name = username != null ? username : "Camila Rojas";
         if (role == null) role = "worker";
+
+        currentWorkerName = name;
+        currentWorkerEmail = (username != null && username.contains("@")) ? username : "camila.rojas@empresa.cl";
 
         TextView tvUserGreeting = findViewById(R.id.tvUserGreeting);
         TextView tvUserRut = findViewById(R.id.tvUserRut);
+        tvLiveStatus = findViewById(R.id.tvLiveStatus);
         etUserEmailInput = findViewById(R.id.etUserEmailInput);
+        MaterialButton btnRefreshLive = findViewById(R.id.btnRefreshLive);
         MaterialButton btnRegisterCheckIn = findViewById(R.id.btnRegisterCheckIn);
         MaterialButton btnRegisterCheckOut = findViewById(R.id.btnRegisterCheckOut);
         MaterialButton btnOpenAdmin = findViewById(R.id.btnOpenAdmin);
         MaterialButton btnLogout = findViewById(R.id.btnLogout);
         layoutHistoryContainer = findViewById(R.id.layoutHistoryContainer);
 
-        tvUserGreeting.setText("Hola, " + name);
-        tvUserRut.setText("RUT: " + rut);
+        tvUserGreeting.setText("Hola, " + currentWorkerName);
+        tvUserRut.setText(currentWorkerEmail);
+        etUserEmailInput.setText(currentWorkerEmail);
 
-        // Prellenar email si está disponible
-        if (username != null && username.contains("@")) {
-            etUserEmailInput.setText(username);
-        }
+        btnRefreshLive.setOnClickListener(v -> syncRealtimeStatus());
 
         btnRegisterCheckIn.setOnClickListener(v -> registerEvent("entrada"));
         btnRegisterCheckOut.setOnClickListener(v -> registerEvent("salida"));
 
-        // Mostrar botón de Admin si el rol es admin
         if ("admin".equalsIgnoreCase(role)) {
             btnOpenAdmin.setVisibility(View.VISIBLE);
         } else {
@@ -92,28 +108,61 @@ public class DashboardActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+    }
 
-        // Cargar historial reciente
-        loadHistory();
+    @Override
+    protected void onResume() {
+        super.onResume();
+        autoSyncHandler.post(autoSyncRunnable);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        autoSyncHandler.removeCallbacks(autoSyncRunnable);
+    }
+
+    private void syncRealtimeStatus() {
+        attendanceRepository.getWorkerAttendanceRealtime(currentWorkerEmail, new AttendanceRepository.HistoryCallback() {
+            @Override
+            public void onSuccess(List<AttendanceRepository.AttendanceItem> history) {
+                renderHistoryTable(history);
+
+                if (history != null && !history.isEmpty()) {
+                    AttendanceRepository.AttendanceItem lastMark = history.get(0);
+                    if ("entrada".equalsIgnoreCase(lastMark.getType())) {
+                        tvLiveStatus.setText("⚡ Sincronizado en Vivo:\n" +
+                                "ENTRADA REGISTRADA (" + lastMark.getTime() + ")\n" +
+                                "Usuario: " + lastMark.getUser());
+                    } else if ("salida".equalsIgnoreCase(lastMark.getType())) {
+                        tvLiveStatus.setText("⚡ Sincronizado en Vivo:\n" +
+                                "SALIDA REGISTRADA (" + lastMark.getTime() + ")\n" +
+                                "Usuario: " + lastMark.getUser());
+                    } else {
+                        tvLiveStatus.setText("Sin marcas recientes.");
+                    }
+                } else {
+                    tvLiveStatus.setText("Esperando marcas desde el servidor...");
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                tvLiveStatus.setText("Sincronizando...");
+            }
+        });
     }
 
     private void registerEvent(String type) {
         String email = etUserEmailInput.getText() != null ? etUserEmailInput.getText().toString().trim() : "";
-        if (email.isEmpty()) {
-            Toast.makeText(this, "Ingrese el email del usuario para registrar", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (email.isEmpty()) email = currentWorkerEmail;
 
         String nowTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-        Toast.makeText(this, "Registrado " + type + " exitosamente para " + email + " a las " + nowTime, Toast.LENGTH_SHORT).show();
-        loadHistory();
-    }
-
-    private void loadHistory() {
-        attendanceRepository.getAttendanceHistory(new AttendanceRepository.HistoryCallback() {
+        attendanceRepository.addAttendanceEvent(currentWorkerName, email, type, nowTime, new AttendanceRepository.ActionCallback() {
             @Override
-            public void onSuccess(List<AttendanceRepository.AttendanceItem> history) {
-                renderHistoryTable(history);
+            public void onSuccess(String message) {
+                Toast.makeText(DashboardActivity.this, message, Toast.LENGTH_SHORT).show();
+                syncRealtimeStatus();
             }
 
             @Override

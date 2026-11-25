@@ -3,6 +3,8 @@ package com.example.asistencia;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +27,7 @@ public class AdminReportsActivity extends AppCompatActivity {
 
     private AttendanceRepository attendanceRepository;
     private LinearLayout layoutWorkersContainer;
+    private AutoCompleteTextView spNewUserStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +46,7 @@ public class AdminReportsActivity extends AppCompatActivity {
         TextInputEditText etNewUserName = findViewById(R.id.etNewUserName);
         TextInputEditText etNewUserEmail = findViewById(R.id.etNewUserEmail);
         TextInputEditText etNewUserPassword = findViewById(R.id.etNewUserPassword);
+        spNewUserStatus = findViewById(R.id.spNewUserStatus);
         MaterialButton btnAddUser = findViewById(R.id.btnAddUser);
 
         MaterialButton btnFilterAll = findViewById(R.id.btnFilterAll);
@@ -52,20 +56,36 @@ public class AdminReportsActivity extends AppCompatActivity {
         layoutWorkersContainer = findViewById(R.id.layoutWorkersContainer);
         MaterialButton btnLogout = findViewById(R.id.btnLogout);
 
-        // Guardar Usuario
+        // Configurar selector de estado (Activo / Inactivo)
+        String[] statusOptions = new String[]{"Activo", "Inactivo"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, statusOptions);
+        spNewUserStatus.setAdapter(adapter);
+
+        // Guardar Usuario con Estado
         btnAddUser.setOnClickListener(v -> {
             String name = etNewUserName.getText() != null ? etNewUserName.getText().toString().trim() : "";
             String email = etNewUserEmail.getText() != null ? etNewUserEmail.getText().toString().trim() : "";
             String pass = etNewUserPassword.getText() != null ? etNewUserPassword.getText().toString().trim() : "";
+            String status = spNewUserStatus.getText() != null ? spNewUserStatus.getText().toString().trim().toLowerCase() : "activo";
 
             if (name.isEmpty() || email.isEmpty() || pass.isEmpty()) {
                 Toast.makeText(this, "Por favor complete todos los campos para añadir usuario", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "Usuario '" + name + "' guardado exitosamente", Toast.LENGTH_SHORT).show();
-                etNewUserName.setText("");
-                etNewUserEmail.setText("");
-                etNewUserPassword.setText("");
-                loadWorkers("todos");
+                attendanceRepository.addWorker(name, email, pass, status, new AttendanceRepository.ActionCallback() {
+                    @Override
+                    public void onSuccess(String message) {
+                        Toast.makeText(AdminReportsActivity.this, message, Toast.LENGTH_SHORT).show();
+                        etNewUserName.setText("");
+                        etNewUserEmail.setText("");
+                        etNewUserPassword.setText("");
+                        loadWorkers("todos");
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        Toast.makeText(AdminReportsActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 
@@ -74,7 +94,7 @@ public class AdminReportsActivity extends AppCompatActivity {
         btnFilterActive.setOnClickListener(v -> loadWorkers("activos"));
         btnFilterInactive.setOnClickListener(v -> loadWorkers("inactivos"));
 
-        // Cargar lista inicial (Todos los usuarios de la API)
+        // Cargar lista inicial
         loadWorkers("todos");
 
         // Botón Cerrar Sesión
@@ -137,14 +157,19 @@ public class AdminReportsActivity extends AppCompatActivity {
             tvEmail.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
             tvEmail.setTextSize(13f);
 
-            // Estado (Badge)
+            // Estado (Badge Activo / Inactivo)
             TextView tvStatus = new TextView(this);
             LinearLayout.LayoutParams statusParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.8f);
             tvStatus.setLayoutParams(statusParams);
             tvStatus.setText(worker.getStatus());
             tvStatus.setGravity(Gravity.END);
             tvStatus.setTextSize(13f);
-            tvStatus.setTextColor(ContextCompat.getColor(this, R.color.success_fg));
+
+            if ("activo".equalsIgnoreCase(worker.getStatus())) {
+                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.success_fg));
+            } else {
+                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.danger_fg));
+            }
 
             row.addView(tvName);
             row.addView(tvEmail);

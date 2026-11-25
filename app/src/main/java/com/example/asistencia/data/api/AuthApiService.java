@@ -10,7 +10,6 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
-import retrofit2.http.Query;
 
 public interface AuthApiService {
     @POST("api/v1/auth/login")
@@ -22,23 +21,29 @@ public interface AuthApiService {
     @POST("login")
     Call<LoginResponse> loginDirect(@Body LoginRequest request);
 
+    // Historial y Marcas de Asistencia (API 2)
     @GET("api/v1/attendance")
-    Call<List<AttendanceRepository.AttendanceItem>> getAttendance(
-            @Query("rut") String rut,
-            @Query("date") String date
-    );
+    Call<List<AttendanceRepository.AttendanceItem>> getAttendanceHistory();
 
-    @GET("api/v1/attendance/history")
-    Call<List<AttendanceRepository.AttendanceItem>> getAttendanceHistoryByEmail(
-            @Query("email") String email
-    );
+    @GET("api/attendance")
+    Call<List<AttendanceRepository.AttendanceItem>> getAttendanceHistoryAlt();
 
-    @GET("api/v1/attendance/search")
-    Call<List<AttendanceRepository.AttendanceItem>> searchAttendance(
-            @Query("name") String name,
-            @Query("email") String email,
-            @Query("status") String status,
-            @Query("rut") String rut,
-            @Query("date") String date
-    );
+    @POST("api/v1/attendance")
+    Call<Void> registerAttendance(@Body AttendanceRepository.AttendanceItem item);
+
+    @POST("api/attendance")
+    Call<Void> registerAttendanceAlt(@Body AttendanceRepository.AttendanceItem item);
+
+    // Lista de Usuarios y Creación (Admin)
+    @GET("api/v1/users")
+    Call<List<AttendanceRepository.WorkerItem>> getWorkersList();
+
+    @GET("api/users")
+    Call<List<AttendanceRepository.WorkerItem>> getWorkersListAlt();
+
+    @POST("api/v1/users")
+    Call<Void> createUser(@Body AttendanceRepository.CreateUserRequest request);
+
+    @POST("api/users")
+    Call<Void> createUserAlt(@Body AttendanceRepository.CreateUserRequest request);
 }
